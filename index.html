@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>browser-agent — find the bugs in the page you are looking at</title>
+<meta name="description" content="Open your page in a real browser, find the buttons that do nothing, the images that failed and the errors nobody can see — then paste the list into Claude or Gemini.">
+<meta property="og:title" content="browser-agent">
+<meta property="og:description" content="Find the bugs in your page, then paste them into a web AI. No install, no setup.">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+  /* Self-contained on purpose: no CDN, no webfont, no build step. The page has to
+     work from a file:// path, from GitHub Pages, and from a zip someone just
+     unzipped. A landing page that phones home is a worse landing page. */
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f8f8;
+    --bg-code: #0d1117;
+    --fg: #16201f;
+    --fg-soft: #55635f;
+    --line: #e2e8e6;
+    --brand: #0f766e;
+    --brand-soft: #e6f4f1;
+    --warn: #b45309;
+    --radius: 10px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1413;
+      --bg-soft: #141c1b;
+      --bg-code: #060a0a;
+      --fg: #e7efed;
+      --fg-soft: #9aa8a5;
+      --line: #24302e;
+      --brand: #2dd4bf;
+      --brand-soft: #10302c;
+      --warn: #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 17px/1.7 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--brand); }
+  code { font-family: var(--mono); font-size: .9em; }
+
+  header { border-bottom: 1px solid var(--line); padding: 76px 0 64px; }
+  .mark { display: inline-flex; align-items: center; gap: 12px; font-weight: 650; margin-bottom: 30px; }
+  .mark svg { width: 34px; height: 34px; flex: none; }
+  h1 {
+    font-size: clamp(29px, 5.2vw, 44px);
+    line-height: 1.14; letter-spacing: -.025em; margin: 0 0 20px; font-weight: 700;
+  }
+  .lede { font-size: clamp(18px, 2.6vw, 21px); color: var(--fg-soft); margin: 0 0 32px; max-width: 58ch; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 34px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: var(--radius);
+    font-weight: 600; font-size: 16px; text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--brand); color: #fff; }
+  @media (prefers-color-scheme: dark) { .btn-primary { color: #04211e; } }
+  .btn-ghost { border-color: var(--line); color: var(--fg); }
+  .btn:hover { text-decoration: none; filter: brightness(1.06); }
+  .note { color: var(--fg-soft); font-size: 15px; margin: 14px 0 0; }
+
+  pre {
+    background: var(--bg-code); color: #e6edf3;
+    border-radius: var(--radius); padding: 18px 20px;
+    font-family: var(--mono); font-size: 14px; line-height: 1.8;
+    overflow-x: auto; margin: 0;
+  }
+  pre .c { color: #7ee787; }
+  pre .k { color: #ff7b72; }
+  pre .d { color: #6e7681; }
+  pre .v { color: #79c0ff; }
+
+  section { padding: 62px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { font-size: 25px; letter-spacing: -.02em; margin: 0 0 10px; font-weight: 680; }
+  h3 { font-size: 17px; margin: 0 0 8px; font-weight: 650; }
+  .sub { color: var(--fg-soft); margin: 0 0 26px; max-width: 58ch; }
+
+  ul.plain { list-style: none; margin: 0; padding: 0; }
+  ul.plain li {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 13px 0; border-bottom: 1px solid var(--line);
+  }
+  ul.plain li:last-child { border-bottom: 0; }
+  .tick { color: var(--brand); font-weight: 700; flex: none; line-height: 1.5; }
+  .no   { color: var(--warn); font-weight: 700; flex: none; line-height: 1.5; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .card p { margin: 0; color: var(--fg-soft); font-size: 15.5px; }
+
+  .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; }
+  .steps li {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 16px 0; border-bottom: 1px solid var(--line);
+  }
+  .steps li:last-child { border-bottom: 0; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    flex: none; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--brand-soft); color: var(--brand);
+    font-weight: 700; font-size: 15px; display: grid; place-items: center;
+  }
+  .steps p { margin: 0; color: var(--fg-soft); }
+
+  footer { padding: 38px 0 60px; color: var(--fg-soft); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="mark">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0f766e"/><circle cx="16" cy="16" r="7" fill="none" stroke="#fff" stroke-width="2.5"/><circle cx="16" cy="16" r="2" fill="#fff"/></svg>
+      <span>browser-agent</span>
+    </div>
+
+    <h1>Find the bugs in the page<br>you are looking at.</h1>
+
+    <p class="lede">
+      Open your site in a real browser and it tells you what is actually broken:
+      the buttons that do nothing, the images that never loaded, the errors only
+      the browser can see. Then paste the list into Claude or Gemini and let it
+      fix them.
+    </p>
+
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/OWNER/browser-agent">Download it</a>
+      <a class="btn btn-ghost" href="#cli">For CLI agents</a>
+    </div>
+
+<pre><span class="c">$</span> node browser.js open http://localhost:3000
+<span class="c">$</span> node browser.js doctor</pre>
+    <p class="note">No install, no account. It uses the Chrome you already have.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>The problem it solves</h2>
+    <p class="sub">
+      Claude, Gemini and ChatGPT write code they have never seen run. A button
+      looks finished. An image path looks right. Nothing crashes. And you find
+      out three days later, in front of a user.
+    </p>
+    <p class="sub" style="margin:0">
+      Asking a web AI about it does not help, because it cannot see your page. So
+      you end up describing the problem from memory, badly. This closes that gap:
+      it looks, it writes the list, you paste it.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What it catches</h2>
+    <p class="sub">One command, on the page you are already running.</p>
+    <ul class="plain">
+      <li><span class="tick">✓</span> <span><strong>Buttons that do nothing.</strong> It checks whether a click handler really exists, not whether the markup looks finished. Add <code>--click</code> and it presses the suspicious ones to prove it.</span></li>
+      <li><span class="tick">✓</span> <span><strong>Images that failed to load</strong>, and links that lead to a 404.</span></li>
+      <li><span class="tick">✓</span> <span><strong>JavaScript errors</strong> the page threw while it was open.</span></li>
+      <li><span class="tick">✓</span> <span><strong>Text cut off</strong> with no sign there was more — the most common bug in generated layouts.</span></li>
+      <li><span class="tick">✓</span> <span><strong>Fields with no label</strong>, and fields that get thrown away on submit.</span></li>
+      <li><span class="tick">✓</span> <span><strong>Two elements sharing one id</strong>, and labels pointing at nothing.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How you use it</h2>
+    <ol class="steps">
+      <li><p>Run <code>doctor</code> on the page you are working on.</p></li>
+      <li><p>Read the list. Every finding is numbered, worst first, with the selector and the markup that caused it.</p></li>
+      <li><p>Run <code>doctor --paste --out=bugs.md</code> and paste that file into Claude, Gemini or ChatGPT.</p></li>
+      <li><p>They fix one at a time. Run <code>doctor</code> again to check.</p></li>
+    </ol>
+
+<pre><span class="c">$</span> node browser.js doctor --paste --out=bugs.md
+OK wrote 3 findings to bugs.md   <span class="d">← open it, copy it, paste it</span></pre>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>It says this, not just "something is wrong"</h2>
+    <p class="sub">So the AI receiving it does not have to guess.</p>
+<pre><span class="c">#3</span>  <span class="k">[high]</span>  A button does nothing when clicked
+      <span class="v">"Save changes"</span>  ·  <span class="v">#save</span>
+      It is visible and enabled, and there is no click listener on it or on
+      anything above it — nothing at all, so pressing it cannot do anything.
+      Fix: Attach a click handler, or make it a real link.</pre>
+  </div>
+</section>
+
+<section id="cli">
+  <div class="wrap">
+    <h2>For CLI agents</h2>
+    <p class="sub">
+      If you use Claude Code, Cursor or Codex in a terminal, the same tool gives
+      your agent a browser it can drive with shell commands. No MCP server, no
+      install — it is one file, and it talks to the Chrome already on your
+      machine.
+    </p>
+<pre><span class="c">$</span> node browser.js state        <span class="d"># what page is this?</span>
+<span class="c">$</span> node browser.js click "#save" <span class="d"># press something</span>
+<span class="c">$</span> node browser.js errors       <span class="d"># what went wrong?</span>
+<span class="c">$</span> node browser.js doctor       <span class="d"># find the bugs</span></pre>
+    <p class="note">
+      <a href="AGENT-SNIPPET.md">Four lines to paste into your agent's instructions →</a>
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Is this for you?</h2>
+    <ul class="plain">
+      <li><span class="tick">✓</span> <span>You have Node 22 or newer. That is the only requirement.</span></li>
+      <li><span class="tick">✓</span> <span>Chrome, Chromium or Edge is already installed. It finds it by itself.</span></li>
+      <li><span class="tick">✓</span> <span>You would rather not set up an MCP server just to look at a page.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Honest limits</h2>
+    <p class="sub">Better you know now than later.</p>
+    <ul class="plain">
+      <li><span class="no">✗</span> <span>It finds problems, it does not fix them. That is what the AI is for.</span></li>
+      <li><span class="no">✗</span> <span>It cannot see images. It reads the page as text, like you do.</span></li>
+      <li><span class="no">✗</span> <span>You sign in yourself, through the real login form. It will not skip it for you.</span></li>
+      <li><span class="no">✗</span> <span><code>--click</code> presses real buttons. Anything that sounds destructive is skipped and reported instead.</span></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>browser-agent</strong> — free, MIT licensed. One file, zero dependencies.</p>
+    <p>
+      <a href="README.md">Guide</a> ·
+      <a href="AGENT-SNIPPET.md">Setup for your agent</a> ·
+      <a href="https://github.com/OWNER/browser-agent/issues">Report a problem</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

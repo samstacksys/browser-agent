@@ -1,0 +1,33 @@
+{
+  "name": "browser-agent",
+  "version": "1.0.0",
+  "description": "Give a CLI coding agent a real browser, with no MCP server. Zero dependencies, Node 22+.",
+  "bin": {
+    "browser": "browser.js"
+  },
+  "main": "browser.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node selftest.js"
+  },
+  "keywords": [
+    "cli-agent",
+    "browser",
+    "headless",
+    "chrome",
+    "cdp",
+    "devtools-protocol",
+    "no-mcp",
+    "automation"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "files": [
+    "browser.js",
+    "selftest.js",
+    "README.md",
+    "AGENT-SNIPPET.md"
+  ]
+}
