@@ -6,14 +6,14 @@ A lightweight real-browser tool for developers and AI coding agents.
 
 It finds the problems that are easy to miss after AI generates a page:
 
-- 🔴 Buttons that do nothing
-- 🔴 Broken links and 404s
-- 🔴 Failed images
-- 🔴 JavaScript errors
-- 🟠 Text that is cut off
-- 🟠 Empty UI elements
-- 🟠 Broken or incomplete forms
-- 🟠 Missing labels and accessibility problems
+- Buttons that do nothing
+- Broken links and 404s
+- Failed images
+- JavaScript errors
+- Text that is cut off
+- Empty UI elements
+- Broken or incomplete forms
+- Missing labels and accessibility problems
 
 Then it turns the findings into plain text that you can give straight back to your AI coding agent.
 
@@ -21,7 +21,7 @@ No MCP server. No dependencies. No complicated setup.
 
 ---
 
-🚀 The problem
+ The problem
 
 AI coding agents are getting very good at writing frontend code.
 
@@ -119,8 +119,8 @@ Open → Inspect → Fix.
 
 ---
 
-🤖 Give the bugs back to your AI
-
+ Give the bugs back to your AI
+r
 This is where Browser Agent becomes especially useful.
 
 Run:
@@ -156,7 +156,7 @@ Less guessing. More fixing.
 
 ---
 
-🩺 The "doctor" command
+ The "doctor" command
 
 "doctor" is the main feature.
 
