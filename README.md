@@ -1,104 +1,91 @@
-Browser Agent
+<div align="center">
 
-AI can build your website. Browser Agent checks if it actually works.
+# Browser Agent
 
-A lightweight real-browser tool for developers and AI coding agents.
+### AI can build your website. Browser Agent checks if it actually works.
 
-It finds the problems that are easy to miss after AI generates a page:
+A lightweight, dependency-free real-browser tool for developers and AI coding agents.
+
+[![Node.js 22+](https://img.shields.io/badge/Node.js-22%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Zero dependencies](https://img.shields.io/badge/runtime_dependencies-0-7C3AED?style=flat-square)](./package.json)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2563EB?style=flat-square)](./LICENSE)
+[![GitHub](https://img.shields.io/badge/source-GitHub-181717?style=flat-square&logo=github)](https://github.com/samstacksys/browser-agent)
+
+<br>
+
+<a href="https://t.me/samstacksys">
+  <img src="https://img.shields.io/badge/Join_Samstack_Systems-Telegram-229ED9?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Samstack Systems on Telegram">
+</a>
+
+**Software • Automation • Managed Infrastructure**
+
+*You run your business. We build and manage the technology behind it. ⚡*
+
+</div>
+
+---
+
+## What Browser Agent catches
+
+AI coding agents can read code and run an app. They do not automatically know what the finished page looks like or how it behaves inside a real browser.
+
+Browser Agent closes that gap by finding problems such as:
 
 - Buttons that do nothing
-- Broken links and 404s
-- Failed images
-- JavaScript errors
-- Text that is cut off
+- Broken links and 404 responses
+- Images that fail to load
+- JavaScript and console errors
+- Cut-off or hidden text
 - Empty UI elements
 - Broken or incomplete forms
-- Missing labels and accessibility problems
+- Missing labels and accessibility issues
 
-Then it turns the findings into plain text that you can give straight back to your AI coding agent.
+It converts those findings into plain text that you can send directly back to Claude, ChatGPT, Codex, Cursor, Gemini, or another coding agent.
 
-No MCP server. No dependencies. No complicated setup.
+> **No MCP server. No runtime dependencies. No complicated setup.**
 
----
+## The workflow
 
- The problem
+| 1. Build | 2. Inspect | 3. Report | 4. Fix |
+|:--:|:--:|:--:|:--:|
+| Your AI generates the page | Browser Agent checks the rendered UI | It creates an agent-ready bug report | Your AI fixes concrete issues |
 
-AI coding agents are getting very good at writing frontend code.
+```text
+AI builds the page  →  Browser Agent checks it  →  AI fixes the page
+```
 
-But there is a gap:
+## Try it in 60 seconds
 
-«They can read the code. They can run the app. But they don't automatically know what the finished page actually looks and behaves like in a real browser.»
+### 1. Clone and test
 
-That's how you end up with:
+You need Node.js 22+ and Chrome, Chromium, or Edge.
 
-Beautiful dashboard
-        ↓
-Everything looks finished
-        ↓
-"Save" button does nothing
-        ↓
-Image failed to load
-        ↓
-Mobile layout is broken
-        ↓
-Nobody noticed
-
-Browser Agent gives your AI a real browser to inspect the result.
-
----
-
-⚡ Try it in 60 seconds
-
-1. Requirements
-
-You need:
-
-- Node.js 22+
-- Chrome, Chromium, or Edge
-
-That's it.
-
-There are zero npm dependencies.
-
-2. Clone the project
-
+```bash
 git clone https://github.com/samstacksys/browser-agent.git
 cd browser-agent
-
-3. Test your setup
-
 npm test
+```
 
-This runs Browser Agent against its own test page.
+The self-test uses a deliberately broken page to verify JavaScript errors, 404s, interactions, forms, and redirects.
 
-The test page deliberately contains broken things such as:
+### 2. Open your website
 
-- a JavaScript error
-- a 404
-- a broken interaction
-- a form
-- a redirect
+Start your website normally, then open it with Browser Agent:
 
-If the tests pass, your browser setup is working.
-
-4. Open your website
-
-Start your website normally.
-
-For example:
-
+```bash
 npm run dev
-
-Then:
-
 node browser.js open http://localhost:3000
+```
 
-5. Find the problems
+### 3. Find the problems
 
+```bash
 node browser.js doctor
+```
 
-You might get:
+Example output:
 
+```text
 Checked http://localhost:3000/dashboard
 
 2 problems (1 high, 1 mid)
@@ -112,488 +99,264 @@ Checked http://localhost:3000/dashboard
     "Total for March 2026..." · .summary > span.total
 
     Fix: Let it wrap, or use text-overflow: ellipsis.
+```
 
-That's the whole idea.
+That is the core loop: **Open → Inspect → Fix.**
 
-Open → Inspect → Fix.
+## Give the bugs back to your AI
 
----
+Generate a report designed for an AI coding agent:
 
- Give the bugs back to your AI
-r
-This is where Browser Agent becomes especially useful.
-
-Run:
-
+```bash
 node browser.js doctor --paste --out=bugs.md
+```
 
-Now you have:
+The generated `bugs.md` includes:
 
-bugs.md
+- What went wrong
+- Where it happened
+- The relevant selector and markup
+- Why it is a problem
+- A suggested fix
 
-The file contains the findings in a format designed for an AI coding agent.
+Give that file to your coding agent with a simple instruction:
 
-It includes:
-
-- what went wrong
-- where it happened
-- the selector
-- relevant markup
-- why it is a problem
-- a suggested fix
-
-Give "bugs.md" to Claude, Gemini, ChatGPT, Cursor, Codex, or another coding agent.
-
-Instead of telling the AI:
-
-«"Something on the dashboard doesn't work."»
-
-You can give it:
-
-«"Here are the problems Browser Agent found in the actual rendered page. Fix them one at a time."»
+> Here are the problems Browser Agent found in the rendered page. Fix them one at a time.
 
 Less guessing. More fixing.
 
----
+## The `doctor` command
 
- The "doctor" command
+`doctor` inspects the page in a real browser and orders findings by severity.
 
-"doctor" is the main feature.
-
+```bash
 node browser.js doctor
+```
 
-It checks the page for things that can be detected from a real browser.
+| Problem | What it checks |
+|---|---|
+| Dead buttons | Whether buttons appear to have real handlers |
+| Broken links | Empty, `#`, JavaScript, and unreachable links |
+| 404 links | Server responses |
+| Failed images | Images that did not load |
+| JavaScript errors | Console errors and uncaught exceptions |
+| Cut-off text | Content hidden by its container |
+| Missing labels | Form fields without proper labels |
+| Missing `name` | Fields that will not submit their value |
+| Duplicate IDs | Duplicate HTML IDs |
+| Broken labels | Labels pointing to missing elements |
+| Broken forms | Forms without useful actions |
+| HTTP form posts | Insecure form submissions |
+| Empty UI | Large empty elements that look broken |
+| Missing alt text | Images without alternative text |
 
-It can find
+### Test suspicious buttons
 
-Problem| What it checks
-Dead buttons| Whether buttons appear to have real handlers
-Broken links| Empty, "#", JavaScript and unreachable links
-404 links| Server responses
-Failed images| Images that didn't load
-JavaScript errors| Console errors and uncaught exceptions
-Cut-off text| Content hidden by its container
-Missing labels| Form fields without proper labels
-Missing "name"| Fields that won't submit their value
-Duplicate IDs| Duplicate HTML IDs
-Broken labels| Labels pointing to missing elements
-Broken forms| Forms without useful actions
-HTTP form posts| Insecure form submissions
-Empty UI| Large empty elements that look broken
-Missing alt text| Images without alternative text
-
-Findings are numbered and ordered by severity.
-
----
-
-🖱️ Test suspicious buttons
-
-A button can look completely normal while doing absolutely nothing.
-
-Use:
-
+```bash
 node browser.js doctor --click
+```
 
-Browser Agent will test suspicious buttons in the real browser.
+Browser Agent tests suspicious buttons while automatically skipping actions that look destructive, such as **Delete account**. Clicking is opt-in because pressing a button is the only reliable way to confirm whether it works.
 
-Example:
+### Useful options
 
-4 buttons checked:
-2 have a handler
-2 have none
+| Goal | Command |
+|---|---|
+| Generate AI-ready output | `node browser.js doctor --paste` |
+| Save the report | `node browser.js doctor --paste --out=bugs.md` |
+| Test suspicious buttons | `node browser.js doctor --click` |
+| Skip network checks | `node browser.js doctor --no-network` |
+| Fail CI on high-severity issues | `node browser.js doctor --strict` |
+| Limit inspected items | `node browser.js doctor --limit=20` |
 
-Clicked 1 suspicious button:
-1 confirmed dead
+## Use it as a persistent browser
 
-1 left alone because it looks destructive:
-Delete account
+Browser Agent is also a lightweight browser interface for terminal-based AI agents. The browser remains alive between commands, preserving cookies and page state.
 
-Destructive-looking actions are skipped automatically.
-
-"--click" is opt-in because actually pressing a button is the only reliable way to know whether it works.
-
----
-
-📋 Useful "doctor" options
-
-Generate AI-ready output
-
-node browser.js doctor --paste
-
-Save the report
-
-node browser.js doctor --paste --out=bugs.md
-
-Test buttons
-
-node browser.js doctor --click
-
-Skip network checks
-
-node browser.js doctor --no-network
-
-Use it in CI
-
-node browser.js doctor --strict
-
-"--strict" exits with code "1" when high-severity problems are found.
-
-Limit how many items are checked
-
-node browser.js doctor --limit=20
-
----
-
-🌐 Use it as a browser
-
-Browser Agent is not only a diagnostic tool.
-
-It can also give an AI coding agent a persistent browser session.
-
-Open a page
-
+```bash
+# Navigate
 node browser.js open https://example.com
+node browser.js reload
+node browser.js back
 
-See what is on the page
-
+# Inspect
 node browser.js state
-
-Read visible text
-
 node browser.js text
-
-List buttons
-
 node browser.js buttons
-
-List links
-
 node browser.js links
-
-Click something
-
-node browser.js click "#login"
-
-Fill a form
-
-node browser.js fill "#email" "me@example.com"
-
-Press a key
-
-node browser.js press Enter
-
-Take a screenshot
-
-node browser.js screenshot
-
-Check errors
-
 node browser.js errors
 
-Get the current URL
+# Interact
+node browser.js click "#login"
+node browser.js fill "#email" "me@example.com"
+node browser.js press Enter
 
+# Capture
+node browser.js screenshot
 node browser.js url
+```
 
-The browser stays alive between commands.
+A coding agent can run a complete browser flow:
 
-That means an agent can do:
+```text
+open → fill → click → state → errors → doctor
+```
 
-open
-   ↓
-fill
-   ↓
-click
-   ↓
-state
-   ↓
-errors
-   ↓
-doctor
+## Desktop and mobile layouts
 
-The session keeps its cookies and page state.
+Use a custom viewport:
 
----
-
-📱 Test desktop and mobile layouts
-
-Use a specific viewport:
-
+```bash
 node browser.js --viewport=1440x900 open https://example.com
+```
 
-Or use the built-in mobile size:
+Or use the built-in `390×844` mobile viewport:
 
+```bash
 node browser.js --mobile open https://example.com
+```
 
-Mobile uses a 390×844 viewport.
+## For AI coding agents
 
----
+Browser Agent works well with terminal-based tools including Claude Code, Cursor, Codex, Gemini-based workflows, and other agents that can run shell commands.
 
-🤖 For AI coding agents
+Copy the project instructions from [`AGENT-SNIPPET.md`](./AGENT-SNIPPET.md) into one of the configuration files used by your agent:
 
-Browser Agent works particularly well with terminal-based coding agents such as:
-
-- Claude Code
-- Cursor
-- Codex
-- Gemini-based coding workflows
-- Other agents that can run shell commands
-
-The agent can control the browser using normal shell commands and read the results as plain text.
-
-No MCP server is required.
-
-For agent-specific instructions, see:
-
-""AGENT-SNIPPET.md"" (./AGENT-SNIPPET.md)
-
-You can copy the instructions into:
-
+```text
 AGENTS.md
 CLAUDE.md
 .cursorrules
+```
 
----
+## Why a real browser?
 
-🧠 Why a real browser?
+| Method | What it misses |
+|---|---|
+| HTTP request | A Save button that looks real but does nothing |
+| DOM parser | An image that failed to load after rendering |
+| Unit test | A production layout that breaks at a real viewport |
 
-A normal HTTP request can tell you that a page returned "200".
+Browser Agent uses an actual Chromium-based browser. It renders the page, executes JavaScript, observes errors, and interacts with the UI through the Chrome DevTools Protocol.
 
-It cannot reliably tell you:
+## Requirements and configuration
 
-«"The Save button looks real but does nothing."»
+### Node.js
 
-A DOM parser can inspect HTML.
+Node.js 22 or newer. Browser Agent uses the built-in `WebSocket` and `fetch` APIs, so it has no runtime npm dependencies.
 
-It cannot reliably tell you:
+### Browser
 
-«"This image failed to load."»
-
-A test can pass.
-
-The production page can still be broken.
-
-Browser Agent uses an actual Chromium-based browser, so it can inspect the rendered page, execute JavaScript, observe errors and interact with the UI.
-
-That's the important difference.
-
----
-
-🛠️ Requirements
-
-Node.js
-
-Node 22 or newer.
-
-Browser Agent uses Node's built-in "WebSocket" and "fetch", so there are no runtime npm dependencies.
-
-Browser
-
-One of:
+Install one of:
 
 - Chrome
 - Chromium
 - Edge
 
-Browser Agent searches common locations automatically.
+Browser Agent searches common locations automatically. You can also provide the browser path manually:
 
-You can also specify one manually:
-
+```bash
 node browser.js --browser=/path/to/chrome open https://example.com
+```
 
-Or:
+Or set it through the environment:
 
-BROWSER_PATH=/path/to/chrome
+```bash
+export BROWSER_PATH=/path/to/chrome
+```
 
 Check that everything is available:
 
+```bash
 node browser.js start
+```
 
----
+## Command reference
 
-📚 All commands
+Run `node browser.js help` for the complete built-in reference.
 
-Run:
+| Category | Commands |
+|---|---|
+| Inspect | `state`, `text [selector]`, `html [selector]`, `links`, `buttons`, `forms`, `count <selector>`, `screenshot [file]` |
+| Interact | `click <selector>`, `fill <selector> <text>`, `select <selector> <value>`, `press <key>`, `scroll`, `eval <expression>`, `wait <selector>` |
+| Navigate | `open <url>`, `reload`, `back`, `forward`, `url`, `title` |
+| Diagnose | `doctor`, `errors`, `console` |
+| Tabs | `tabs`, `newtab [url]`, `use <n>`, `closetab <n>` |
+| Lifecycle | `start`, `stop`, `status`, `help` |
 
-node browser.js help
+## Independent sessions
 
-Inspect
+Run multiple browser sessions with separate cookies and state:
 
-state
-text [selector]
-html [selector]
-links
-buttons
-forms
-count <selector>
-screenshot [file]
-
-Interact
-
-click <selector>
-fill <selector> <text>
-select <selector> <value>
-press <key>
-scroll [px|up|down|top|bottom]
-eval <expression>
-wait <selector>
-
-Navigate
-
-open <url>
-reload
-back
-forward
-url
-title
-
-Diagnose
-
-doctor
-errors
-console
-
-Tabs
-
-tabs
-newtab [url]
-use <n>
-closetab <n>
-
-Browser lifecycle
-
-start
-stop
-status
-help
-
----
-
-🔐 Sessions
-
-You can run multiple independent browser sessions.
-
+```bash
 node browser.js --session=signup open https://example.com/signup
-
-And another:
-
 node browser.js --session=checkout open https://example.com/cart
+```
 
-Each session has its own browser and cookies.
+## Important limitations
 
----
+- **`doctor` is heuristic.** A clean report means it did not find a problem it knows how to detect—not that the site is guaranteed to be perfect.
+- **Clicks are DOM clicks.** They work well with normal HTML, React, and Vue, but do not replace real pointer interaction for drag-and-drop, hover-only interfaces, canvas apps, or pointer-only widgets.
+- **One viewport is tested at a time.** Browser Agent is not a complete device emulator.
+- **Authentication is respected.** It does not bypass sign-in or access controls.
+- **The browser is headless.** Chromium runs without a visible browser window.
 
-⚠️ Important limitations
+## How it works
 
-Browser Agent is designed to be useful, not magical.
-
-"doctor" is a heuristic
-
-A clean report means:
-
-«"Browser Agent didn't find anything it knows how to detect."»
-
-It does not mean:
-
-«"This website is guaranteed to be perfect."»
-
-Clicks are DOM clicks
-
-"click" works well with normal HTML and frameworks such as React and Vue.
-
-It is not a replacement for real mouse interaction with:
-
-- drag-and-drop
-- hover-only interfaces
-- canvas applications
-- pointer-only widgets
-
-One viewport at a time
-
-Browser Agent can test different viewport sizes, but it is not a complete device emulator.
-
-Authentication
-
-Browser Agent does not bypass authentication.
-
-Log in through the real application like a normal user.
-
-Headless browser
-
-Browser Agent uses a headless browser.
-
-The browser is running, but there is no visible Chrome window.
-
----
-
-🏗️ How it works
-
-The project intentionally keeps the architecture small.
-
-AI agent
-   │
-   │ shell commands
-   ▼
-browser.js
-   │
-   │ WebSocket / CDP
-   ▼
+```text
+AI coding agent
+      │
+      │ shell commands
+      ▼
+  browser.js
+      │
+      │ WebSocket / Chrome DevTools Protocol
+      ▼
 Chrome / Chromium / Edge
-   │
-   ▼
-Your actual website
+      │
+      ▼
+Your rendered website
+```
 
-There is:
+The architecture stays intentionally small:
 
-- no Puppeteer
-- no Playwright
-- no "ws"
-- no MCP server
-- no runtime dependency stack
+- No Puppeteer
+- No Playwright
+- No `ws` package
+- No MCP server
+- No runtime dependency stack
 
-The browser stays alive between commands so agents can work with a real session instead of starting from zero every time.
+## Project structure
 
----
-
-📁 Project structure
-
+```text
 browser-agent/
-├── browser.js
-├── selftest.js
-├── index.html
-├── AGENT-SNIPPET.md
+├── browser.js          # CLI, browser communication, and helpers
+├── selftest.js         # Browser-based self-test
+├── index.html          # Deliberately broken self-test page
+├── AGENT-SNIPPET.md    # Instructions for AI coding agents
 ├── README.md
 └── LICENSE
+```
 
-"browser.js" contains the main CLI, browser communication and helpers.
+## Contributing
 
-"selftest.js" runs the project's own browser tests.
+Issues, ideas, and pull requests are welcome. If you find a frontend bug type that Browser Agent should detect, [open an issue](https://github.com/samstacksys/browser-agent/issues) or contribute a detector.
 
-"AGENT-SNIPPET.md" contains instructions designed specifically for AI coding agents.
+## License
 
----
-
-🎯 The idea
-
-AI-generated software is getting faster.
-
-The next problem is making sure the software it generates actually works.
-
-Browser Agent is a small step toward closing that gap.
-
-«AI builds the page.
-Browser Agent checks the page.
-AI fixes the page.»
+Released under the [MIT License](./LICENSE).
 
 ---
 
-🤝 Contributing
+<div align="center">
 
-Issues, ideas and pull requests are welcome.
+### Built by Samstack Systems
 
-If you find a type of frontend bug that Browser Agent should detect, open an issue or contribute a detector.
+**Software • Automation • Managed Infrastructure**
 
----
+You run your business. We build and manage the technology behind it. ⚡
 
-📄 License
+<a href="https://t.me/samstacksys">
+  <img src="https://img.shields.io/badge/Join_the_Telegram_Channel-229ED9?style=for-the-badge&logo=telegram&logoColor=white" alt="Join the Samstack Systems Telegram channel">
+</a>
 
-MIT
+</div>
